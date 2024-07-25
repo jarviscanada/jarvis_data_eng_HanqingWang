@@ -33,7 +33,7 @@ timestamp=$(vmstat -t | awk 'NR==3 {print $18 " " $19}')
 host_id="(SELECT id FROM host_info WHERE hostname='$hostname')";
 # PSQL command: Inserts server usage data into host_usage table
 # Note: be careful with double and single quotes
-insert_stmt="INSERT INTO host_usage(timestamp,memory_free,cpu_idle,cpu_kernel,disk_io,disk_available) VALUES('$timestamp','$memory_free','$cpu_idle','$cpu_kernel','$disk_io','$disk_available')";
+insert_stmt="INSERT INTO host_usage(host_id, timestamp,memory_free,cpu_idle,cpu_kernel,disk_io,disk_available) VALUES($host_id,'$timestamp','$memory_free','$cpu_idle','$cpu_kernel','$disk_io','$disk_available')";
 
 #set up env var for pql cmd
 export PGPASSWORD=$psql_password
