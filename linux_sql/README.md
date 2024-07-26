@@ -1,11 +1,11 @@
 # Introduction
-The objective of the Linux Cluster monitoring project is to create a monitoring program that automatically tracks CPU usage on the JARVIS remote desktop. Monitoring CPU usage is crucial for obtaining important information about your virtual environment. By tracking CPU usage, administrators can ensure the system runs efficiently, troubleshoot potential issues, and plan for future resource needs.
+The objective of the Linux Cluster monitoring project is to create a monitoring program that automatically tracks CPU usage on different servers. Monitoring CPU usage is crucial for obtaining important information about your virtual environment. By tracking CPU usage, administrators can ensure the system runs efficiently, troubleshoot potential issues, and plan for future resource needs.
 
 This program tracks several key CPU usage parameters, including free memory, idle and kernel CPU time, disk input/output operations, and disk free space. Docker is used to create containers, ensuring the application runs consistently across different environments. Bash scripts are created to automate commands that extract and save CPU usage data. Git is utilized as the primary version control system, helping developers track changes in the source code during software development.
 # Quick Start
-In this section, we will look at some quick start commands to implement the monitoring program. 
+In this section, we will look at some quick-start commands to implement the monitoring program. 
 1. Start a psql instance using psql_docker.sh
-  - To start a psql instance, users need to define the host name(HOST_NAME), user name(USER_NAME) and database name(DB_name). Port number should be set to 5432 which is the TCP port used by the PostgreSQL Database Server.
+  - To start a psql instance, users need to define the hostname (HOST_NAME), user name(USER_NAME) and database name(DB_name). Port number should be set to 5432 which is the TCP port used by the PostgreSQL Database Server.
   ```
   psql -h HOST_NAME -p 5432 -U USER_NAME -d DB_NAME 
   ```
@@ -17,14 +17,14 @@ In this section, we will look at some quick start commands to implement the moni
 
 3. Insert hardware specs data into the DB using host_info.sh
   - To call up and run host_info.sh script, we need define two additional variables which are psql username(psql_USER) and password(psql_PASSWORD).
-```
-./scripts/host_info.sh HOST_NAME 5432 DB_NAME psql_USER psql_PASSWORD
-```
-4. Insert hardware usage data into the DB using host_usage.sh
-- Follow the same steps to run host_usage.sh script.
-```
-./scripts/host_usage.sh HOST_NAME 5432 DB_NAME psql_USER psql_PASSWORD
-```
+  ```
+  ./scripts/host_info.sh HOST_NAME 5432 DB_NAME psql_USER psql_PASSWORD
+  ```
+  4. Insert hardware usage data into the DB using host_usage.sh
+  - Follow the same steps to run host_usage.sh script.
+  ```
+  ./scripts/host_usage.sh HOST_NAME 5432 DB_NAME psql_USER psql_PASSWORD
+  ```
 5. Crontab setup
 - We can set up the Crontab tool to automate the host_usage.sh to collect CPU usage data continuously.
 - Simplly type ` crontab -e ` to edit crontab script.
@@ -47,8 +47,8 @@ sudo systemctl status docker || sudo systemctl start docker
 ```
 followed by checking the status of the specified container.
 ```
-  docker container inspect jrvs-psql
-  container_status=$?
+docker container inspect jrvs-psql
+container_status=$?
 ```
 If the container exists, the above argument will return 0, otherwise it will return 1.
 The script supports three primary commands: `create`, `start`, and `stop`. The create command verifies if the container already exists and, if not, creates it using the provided database username and password while setting up a Docker volume for persistent storage. The start and stop commands control the running state of an existing container. 
@@ -66,7 +66,7 @@ It then gathers various machine statistics, including the number of CPUs, CPU ar
 ```
 host_id="(SELECT id FROM host_info WHERE hostname='$hostname')";
 ```
-After collecting all the necessary information, the script stores the data into `host_info` table under the same database.
+After collecting all the necessary information, the script stores the data in `host_info` table under the same database.
 ### crontab
 The Crontab script schedules automatic execution of `host_usage.sh` script at a one-minute interval. The results are saved to a log file for debugging and monitoring. 
 
@@ -91,13 +91,14 @@ The database `host_agent` stores two tables: `host_info` and `host_usage`.
 - `cpu_kernel`: The percentage of CPU time spent on kernel processes at the time of recording.
 - `disk_io`: The amount of disk input/output operations at the time of recording.
 - `disk_available`: The amount of available disk space at the time of recording, in megabytes (MB).
-
-
 # Test
-How did you test your bash scripts DDL? What was the result?
-
+Testing is a very important step to ensure the program is running smoothly with the desired output. To test the ddl.sql script, we can run it against the psql instance. An example is shown below:
+```
+psql -h localhost -U postgres -d host_agent -f sql/ddl.sql
+```
+The command should redirect you to the database `host_agent`, where you can use `SELECT * FROM host_usage` and `SELECT * FROM host_info` to visualize the data points stored. Verify that crontab successfully adds an entry to the 'host_usage' every minute. 
 # Deployment
-How did you deploy your app? (e.g. Github, crontab, docker)
+The deployment process for the `host_usage.sh` script involves a combination of GitHub, Docker, and crontab for efficient management and execution. The source code is maintained on GitHub which provides efficient version tracking and collaborative development. The script is stored in a remote repository, enabling easy updates and maintenance. The PostgreSQL database, where the host usage data is stored, is installed in a Docker container. This ensures a consistent and isolated database environment, so the script can run regardless of the server. Crontab automates the execution of scripts and ensures that host usage data is collected and recorded continuously. 
 
 # Improvements
 Write at least three things you want to improve 
