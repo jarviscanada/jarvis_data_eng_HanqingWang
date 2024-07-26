@@ -1,4 +1,3 @@
-
 # Introduction
 The objective of the Linux Cluster monitoring project is to create a monitoring program that automatically tracks CPU usage on the JARVIS remote desktop. Monitoring CPU usage is crucial for obtaining important information about your virtual environment. By tracking CPU usage, administrators can ensure the system runs efficiently, troubleshoot potential issues, and plan for future resource needs.
 
@@ -72,9 +71,27 @@ After collecting all the necessary information, the script stores the data into 
 The Crontab script schedules automatic execution of `host_usage.sh` script at a one-minute interval. The results are saved to a log file for debugging and monitoring. 
 
 ## Database Modeling
-Describe the schema of each table using markdown table syntax (do not put any sql code)
-- `host_info`
-- `host_usage`
+The database `host_agent` stores two tables: `host_info` and `host_usage`.
+`host_info` contains the following:
+- `id`: A unique identifier for each host record, automatically incremented.
+- `hostname`: The name or network identifier of the machine.
+- `cpu_number`: The total number of CPU cores in the machine.
+- `cpu_architecture`: The architecture type of the CPU (e.g., x86_64).
+- `cpu_model`: The specific model name of the CPU.
+- `cpu_mhz`: The clock speed of the CPU in megahertz (MHz).
+- `l2_cache`: The size of the Level 2 cache memory in kilobytes (KB).
+- `total_mem`: The total amount of RAM in the machine in kilobytes (KB).
+- `timestamp`: The date and time when the data was recorded.
+
+`host_usage` contains the following:
+- `timestamp`: The date and time when the usage data was recorded.
+- `host_id`: A foreign key referencing the id field in the host_info table, identifying which host the usage data belongs to.
+- `memory_free`: The amount of free memory available on the machine at the time of recording, in megabytes (MB).
+- `cpu_idle`: The percentage of CPU time that is idle at the time of recording.
+- `cpu_kernel`: The percentage of CPU time spent on kernel processes at the time of recording.
+- `disk_io`: The amount of disk input/output operations at the time of recording.
+- `disk_available`: The amount of available disk space at the time of recording, in megabytes (MB).
+
 
 # Test
 How did you test your bash scripts DDL? What was the result?
