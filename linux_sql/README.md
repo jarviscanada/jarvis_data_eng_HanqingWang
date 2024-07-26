@@ -40,7 +40,9 @@ Draw a cluster diagram with three Linux hosts, a DB, and agents (use draw.io web
 
 ## Scripts
 In this section, we will look at the function of each script and its usage.
-### psql_doscker.sh
+
+**psql_doscker.sh**
+
 The script `psql_docker.sh` is designed to manage a PostgreSQL Docker container named jrvs-psql. It handles three command-line arguments to determine the desired action and to gather database credentials. Initially, it ensures that Docker is running,
 ```
 sudo systemctl status docker || sudo systemctl start docker
@@ -51,8 +53,10 @@ docker container inspect jrvs-psql
 container_status=$?
 ```
 If the container exists, the above argument will return 0, otherwise it will return 1.
-The script supports three primary commands: `create`, `start`, and `stop`. The create command verifies if the container already exists and, if not, creates it using the provided database username and password while setting up a Docker volume for persistent storage. The start and stop commands control the running state of an existing container. 
-### host_info.sh
+The script supports three primary commands: `create`, `start`, and `stop`. The create command verifies if the container already exists and, if not, creates it using the provided database username and password while setting up a Docker volume for persistent storage. The `start` and `stop` commands control the running state of an existing container. 
+
+**host_info.sh**
+
 `host_info.sh` script captures detailed hardware specifications and records them into a PostgreSQL database. It requires five command-line arguments: `HOST_NAME` `PORT_NUMBER` `DB_NAME` `psql_USER` `psql_PASSWORD`. The script is run only once since the virtual machine statistics remain the same. Initially, the script ensures that the correct number of arguments is provided.
 ```
 if [ "$#" -ne 5 ]; then
@@ -61,13 +65,17 @@ if [ "$#" -ne 5 ]; then
 fi
 ```
 It then gathers various machine statistics, including the number of CPUs, CPU architecture, CPU model, CPU frequency, L2 cache size, and total memory, along with the current timestamp. Using these metrics, the script constructs a SQL `INSERT` statement to record the data into a table named host_info. For secure connection, the PostgreSQL password is set as an environment variable. The script then uses the psql command-line tool to insert the data into the host_usage table in the database.
-### host_usage.sh
+
+**host_usage.sh**
+
 ```host_usage.sh``` records CPU and memory usage such as the number of CPUs, CPU architecture, CPU model, CPU frequency, L2 cache size, and total memory with the current timestamp. Similarly, the script accepts five arguments and checks the validity of the arguments provided.  The script matches entries with the same `host_name` in `host_usage` table and retrieves the `host_id`. 
 ```
 host_id="(SELECT id FROM host_info WHERE hostname='$hostname')";
 ```
 After collecting all the necessary information, the script stores the data in `host_info` table under the same database.
-### crontab
+
+**crontab**
+
 The Crontab script schedules automatic execution of `host_usage.sh` script at a one-minute interval. The results are saved to a log file for debugging and monitoring. 
 
 ## Database Modeling
@@ -101,8 +109,15 @@ The command should redirect you to the database `host_agent`, where you can use 
 The deployment process for the `host_usage.sh` script involves a combination of GitHub, Docker, and crontab for efficient management and execution. The source code is maintained on GitHub which provides efficient version tracking and collaborative development. The script is stored in a remote repository, enabling easy updates and maintenance. The PostgreSQL database, where the host usage data is stored, is installed in a Docker container. This ensures a consistent and isolated database environment, so the script can run regardless of the server. Crontab automates the execution of scripts and ensures that host usage data is collected and recorded continuously. 
 
 # Improvements
-Write at least three things you want to improve 
-e.g. 
-- handle hardware updates 
-- blah
-- blah
+
+**Handle Hardware Updates**
+
+Implement a mechanism to detect and handle changes in the hardware configuration. This could involve setting another crontab to run host_info.sh script to check for updates to the hardware specifications and update the host_info table accordingly. This ensures that the database always reflects the current state of the host machine’s hardware.
+
+**Add Visualization of Usage Data**
+
+Develop a web-based dashboard or integrate with existing visualization tools like Grafana or Kibana to provide real-time and historical visualization of the usage data. This would involve setting up a web server to serve the visualizations and connecting it to the PostgreSQL database to fetch and display the data in graphs and charts. This enhancement would provide a more intuitive understanding of the system’s performance over time.
+
+**Send High Usage Alerts**
+
+Implement an alerting system that sends notifications (e.g., emails, SMS, or Slack messages) when certain usage thresholds are exceeded. This could be achieved by adding a monitoring component that checks the usage data at regular intervals and triggers alerts if predefined thresholds (e.g., CPU usage above 90%, memory usage above 80%) are met. This proactive approach would help in identifying and addressing potential issues before they impact the system’s performance.
