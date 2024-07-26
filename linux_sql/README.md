@@ -36,7 +36,8 @@ In this section, we will look at some quick-start commands to implement the moni
 # Implemenation
 This section outlines the architecture of the Linux Cluster monitoring agent and discusses the scripts and syntaxes used to help users gain a better understanding of the program.
 ## Architecture
-Draw a cluster diagram with three Linux hosts, a DB, and agents (use draw.io website). Image must be saved to the `assets` directory.
+This is a cluster diagram representing three Linux hosts, a database, and two agents.
+
 
 ## Scripts
 In this section, we will look at the function of each script and its usage.
