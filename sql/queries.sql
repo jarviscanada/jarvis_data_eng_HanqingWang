@@ -60,3 +60,13 @@ on facilities.facid=bookings.facid
 where facilities.name in ('Tennis Court 2','Tennis Court 1') 
 and bookings.starttime::date = '2012-09-21'
 order by starttime
+-- Matching against multiple possible values
+select * from cd.facilities
+where facid in (1,5)
+--Working with dates
+select memid, surname, firstname, joindate
+from cd.members 
+where joindate >= '2012-09-01'
+-- union vs join
+select distinct surname as surname from cd.members
+union select distinct name from cd.facilities
