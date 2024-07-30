@@ -42,6 +42,12 @@ where
   memid = 37
   
 -- Basic
+-- Control which rows are retrieved - part 2
+select facid, name, membercost, monthlymaintenance from cd.facilities
+where membercost<monthlymaintenance/50 and membercost!=0
+--Basic string searches
+select * from cd.facilities 
+where name like '%Tennis%'
 -- Retrieve the start times of members' bookings
 select 
   starttime 
@@ -70,3 +76,34 @@ where joindate >= '2012-09-01'
 -- union vs join
 select distinct surname as surname from cd.members
 union select distinct name from cd.facilities
+--Produce a list of all members, along with their recommender
+select members.firstname as memfname, members.surname as memsname,
+recommender.firstname as recfname, recommender.surname as recsname
+from cd.members
+left join cd.members as recommender
+on members.recommendedby=recommender.memid
+order by memsname,memfname
+--Produce a list of all members who have recommended another member
+select distinct recommender.firstname as firstname, recommender.surname as surname
+from cd.members
+left join cd.members as recommender
+on members.recommendedby=recommender.memid
+where recommender.firstname is not null
+order by surname,firstname
+--Produce a list of all members, along with their recommender, using no joins.
+select distinct members.firstname || ' ' || members.surname as member,
+	(select distinct recommender.firstname || ' ' || recommender.surname as recommender
+ 		from cd.members as recommender
+ 		where recommender.memid=members.recommendedby
+ 	)
+ 	from cd.members
+ order by member
+--Count the number of recommendations each member makes.
+select recommender.memid as recommendedby, count(recommender.memid) as count
+from cd.members
+left join cd.members as recommender
+on members.recommendedby=recommender.memid
+where recommender.memid is not null
+group by recommender.memid
+order by recommender.memid
+--
