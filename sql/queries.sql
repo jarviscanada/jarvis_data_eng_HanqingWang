@@ -106,4 +106,58 @@ on members.recommendedby=recommender.memid
 where recommender.memid is not null
 group by recommender.memid
 order by recommender.memid
---
+--List the total slots booked per facility
+select bookings.facid, sum(slots) as "Total Slots"
+from cd.bookings
+inner join cd.facilities
+on bookings.facid=facilities.facid
+group by bookings.facid
+order by bookings.facid
+-- List the total slots booked per facility in a given month
+select bookings.facid, sum(slots) as "Total Slots"
+from cd.bookings
+where bookings.starttime between '2012-09-01' and'2012-10-1'
+group by bookings.facid
+order by sum(slots)
+--List the total slots booked per facility per month
+select bookings.facid, extract(month from starttime) as month, sum(slots) as "Total Slots"
+from cd.bookings
+where extract(year from starttime)=2012
+group by bookings.facid, extract(month from starttime)
+order by bookings.facid, extract(month from starttime)
+--Find the count of members who have made at least one booking
+select count(distinct bookings.memid) as "count"
+from cd.bookings
+--List each member's first booking after September 1st 2012
+select surname, firstname, members.memid, min(bookings.starttime) as starttime
+from cd.members
+full join cd.bookings
+on members.memid=bookings.memid
+where starttime>'2012-09-01'
+group by surname, firstname, members.memid
+order by members.memid
+--Produce a list of member names, with each row containing the total member count
+select count(*) over(), firstname, surname
+from cd.members
+order by joindate
+--Produce a numbered list of members
+select row_number() over(order by joindate), firstname, surname
+from cd.members
+order by joindate
+-- Output the facility id that has the highest number of slots booked, again
+select facid, total from(
+select bookings.facid, sum(slots) as total, rank() over (order by sum(slots) desc) as count
+from cd.bookings
+group by facid
+order by sum(slots) desc) as subquery
+where count =1
+--Format the names of members
+select surname || ', ' || firstname as name from cd.members  
+--Find telephone numbers with parentheses
+select memid, telephone from cd.members
+where telephone like '(%)%-%'
+-- Count the number of members whose surname starts with each letter of the alphabet
+select substr(surname, 1,1) as letter, count(*) as count
+from cd.members
+group by letter
+order by letter
