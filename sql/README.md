@@ -3,6 +3,8 @@ The goal of the project is to help a newly opened analyze the usage patterns and
 # SQL Quries
 
 ### Table Setup (DDL)
+
+Table 'cd.members' contains club member information including unique member id, name of the member, address, phone number and the time they joined the club and their recommenders if applicable. Member ID may not be sequential.
 ```
 CREATE TABLE cd.members
     (
@@ -19,6 +21,7 @@ CREATE TABLE cd.members
             REFERENCES cd.members(memid) ON DELETE SET NULL
     );
 ```
+The facilities table lists all the bookable facilities that the country club possesses. The club stores id/name information, the cost to book both members and guests, the initial cost to build the facility, and estimated monthly upkeep costs. 
 ```  
  CREATE TABLE cd.facilities
     (
@@ -31,6 +34,7 @@ CREATE TABLE cd.members
        CONSTRAINT facilities_pk PRIMARY KEY (facid)
     );
 ```
+The table 'cd.bookings' tracks bookings of facilities. This table includes information about the member who made the booking, the start of the booking, and how many 'slots' the booking was made for.
 ```
   CREATE TABLE cd.bookings
     (
@@ -44,35 +48,38 @@ CREATE TABLE cd.members
        CONSTRAINT fk_bookings_memid FOREIGN KEY (memid) REFERENCES cd.members(memid)
     );
 ```
-###### Question 1: Show all members 
-
--- Modifying Data
--- The club is adding a new facility - a spa. We need to add it into the facilities table. Use the following values:
--- facid: 9, Name: 'Spa', membercost: 20, guestcost: 30, initialoutlay: 100000, monthlymaintenance: 800.
-insert into cd.facilities (
+### SQL Practices
+###### Question 1: The club is adding a new facility - a spa. We need to add it into the facilities table. 
+###### Use the following values: facid: 9, Name: 'Spa', membercost: 20, guestcost: 30, initialoutlay: 100000, monthlymaintenance: 800. 
+```
+insert into cd.facilities 
+(
   facid, name, membercost, guestcost, 
   initialoutlay, monthlymaintenance
 ) 
 values 
   (9, 'spa', 20, 30, 100000, 800);
-
--- Let's try adding the spa to the facilities table again. This time, though, we want to automatically generate the value for the next facid, rather than specifying it as a constant. Use the following values for everything else:
--- Name: 'Spa', membercost: 20, guestcost: 30, initialoutlay: 100000, monthlymaintenance: 800.
+```
+###### Question 2: Let's try adding the spa to the facilities table again. This time, though, we want to automatically generate the value for the next facid, rather than specifying it as a constant. 
+```
 insert into cd.facilities 
 values 
   (
     (select max(facid) from cd.facilities) + 1, 
     'spa', 20, 30, 100000, 800
   );
--- We made a mistake when entering the data for the second tennis court. The initial outlay was 10000 rather than 8000: you need to alter the data to fix the error.
+```
+###### Question 3:We made a mistake when entering the data for the second tennis court. The initial outlay was 10000 rather than 8000: you need to alter the data to fix the error.
+```
 update 
   cd.facilities 
 set 
   initialoutlay = 10000 
 where 
   facid = 1;
-  
--- We want to alter the price of the second tennis court so that it costs 10% more than the first one. Try to do this without using constant values for the prices, so that we can reuse the statement if we want to.
+```  
+###### Question 4: We want to alter the price of the second tennis court so that it costs 10% more than the first one. Try to do this without using constant values for the prices, so that we can reuse the statement if we want to.
+```
 update 
   cd.facilities 
 set 
@@ -80,23 +87,61 @@ set
   guestcost = 1.1* (select guestcost from cd.facilities where facid=0)
 where 
   facid = 1;
-  
--- As part of a clearout of our database, we want to delete all bookings from the cd.bookings table. How can we accomplish this?
-delete from cd.bookings; 
--- We want to remove member 37, who has never made a booking, from our database. How can we achieve that?
+```  
+###### Question 5: As part of a clearout of our database, we want to delete all bookings from the cd.bookings table. 
+```
+delete from cd.bookings;
+```
+###### Question 6: We want to remove member 37, who has never made a booking, from our database. 
+```
 delete from 
   cd.members 
 where 
   memid = 37
-  
--- Basic
--- Control which rows are retrieved - part 2
-select facid, name, membercost, monthlymaintenance from cd.facilities
-where membercost<monthlymaintenance/50 and membercost!=0
---Basic string searches
+```
+###### Question 7: How can you produce a list of facilities that charge a fee to members, and that fee is less than 1/50th of the monthly maintenance cost? Return the facid, facility name, member cost, and monthly maintenance of the facilities in question.
+```
+select 
+  facid, name, membercost, monthlymaintenance 
+from 
+  cd.facilities 
+where 
+  membercost < monthlymaintenance / 50 
+  and membercost != 0
+```
+###### Question 8: How can you produce a list of all facilities with the word 'Tennis' in their name?
+```
 select * from cd.facilities 
 where name like '%Tennis%'
--- Retrieve the start times of members' bookings
+```
+###### Question 9: How can you retrieve the details of facilities with ID 1 and 5? Try to do it without using the OR operator.
+```
+select * from cd.facilities
+where facid in (1,5)
+```
+###### Question 10: How can you produce a list of members who joined after the start of September 2012? Return the memid, surname, firstname, and joindate of the members in question.
+```
+select
+  memid, surname, firstname, joindate
+from
+  cd.members 
+where
+  joindate >= '2012-09-01'
+```
+###### Question 11: You, for some reason, want a combined list of all surnames and all facility names. Yes, this is a contrived example :-).
+```
+select 
+  distinct surname as surname 
+from 
+  cd.members 
+union 
+select 
+  distinct name 
+from 
+  cd.facilities
+```
+###### Question 12: How can you produce a list of the start times for bookings by members named 'David Farrell'?
+```
 select 
   starttime 
 from 
@@ -105,22 +150,24 @@ from
 where 
   firstname = 'David' 
   and surname = 'Farrell'
-  
--- Work out the start times of bookings for tennis courts
-select bookings.starttime as start, facilities.name as name
-from cd.bookings
-inner join cd.facilities 
-on facilities.facid=bookings.facid
-where facilities.name in ('Tennis Court 2','Tennis Court 1') 
-and bookings.starttime::date = '2012-09-21'
+``` 
+###### Question 13: How can you produce a list of the start times for bookings for tennis courts, for the date '2012-09-21'? Return a list of start time and facility name pairings, ordered by the time.
+```
+select
+  bookings.starttime as start, facilities.name as name
+from
+  cd.bookings
+inner join
+  cd.facilities 
+on
+  facilities.facid=bookings.facid
+where
+  facilities.name in ('Tennis Court 2','Tennis Court 1') 
+and
+  bookings.starttime::date = '2012-09-21'
 order by starttime
--- Matching against multiple possible values
-select * from cd.facilities
-where facid in (1,5)
---Working with dates
-select memid, surname, firstname, joindate
-from cd.members 
-where joindate >= '2012-09-01'
+```
+
 -- union vs join
 select distinct surname as surname from cd.members
 union select distinct name from cd.facilities
