@@ -167,25 +167,26 @@ and
   bookings.starttime::date = '2012-09-21'
 order by starttime
 ```
-
--- union vs join
-select distinct surname as surname from cd.members
-union select distinct name from cd.facilities
---Produce a list of all members, along with their recommender
+###### Question 14: How can you output a list of all members, including the individual who recommended them (if any)? Ensure that results are ordered by (surname, firstname).
+```
 select members.firstname as memfname, members.surname as memsname,
 recommender.firstname as recfname, recommender.surname as recsname
 from cd.members
 left join cd.members as recommender
 on members.recommendedby=recommender.memid
 order by memsname,memfname
---Produce a list of all members who have recommended another member
+```
+###### Question 15: How can you output a list of all members who have recommended another member? Ensure that there are no duplicates in the list, and that results are ordered by (surname, firstname).
+```
 select distinct recommender.firstname as firstname, recommender.surname as surname
 from cd.members
 left join cd.members as recommender
 on members.recommendedby=recommender.memid
 where recommender.firstname is not null
 order by surname,firstname
---Produce a list of all members, along with their recommender, using no joins.
+```
+###### Question 16: How can you output a list of all members, including the individual who recommended them (if any), without using any joins? Ensure that there are no duplicates in the list, and that each firstname + surname pairing is formatted as a column and ordered.
+```
 select distinct members.firstname || ' ' || members.surname as member,
 	(select distinct recommender.firstname || ' ' || recommender.surname as recommender
  		from cd.members as recommender
@@ -193,7 +194,9 @@ select distinct members.firstname || ' ' || members.surname as member,
  	)
  	from cd.members
  order by member
---Count the number of recommendations each member makes.
+```
+###### Question 17: Produce a count of the number of recommendations each member has made. Order by member ID.
+```
 select recommender.memid as recommendedby, count(recommender.memid) as count
 from cd.members
 left join cd.members as recommender
@@ -201,29 +204,39 @@ on members.recommendedby=recommender.memid
 where recommender.memid is not null
 group by recommender.memid
 order by recommender.memid
---List the total slots booked per facility
+```
+###### Question 18: Produce a list of the total number of slots booked per facility. For now, just produce an output table consisting of facility id and slots, sorted by facility id.
+```
 select bookings.facid, sum(slots) as "Total Slots"
 from cd.bookings
 inner join cd.facilities
 on bookings.facid=facilities.facid
 group by bookings.facid
 order by bookings.facid
--- List the total slots booked per facility in a given month
+```
+###### Question 19: Produce a list of the total number of slots booked per facility in the month of September 2012. Produce an output table consisting of facility id and slots, sorted by the number of slots.
+```
 select bookings.facid, sum(slots) as "Total Slots"
 from cd.bookings
 where bookings.starttime between '2012-09-01' and'2012-10-1'
 group by bookings.facid
 order by sum(slots)
---List the total slots booked per facility per month
+```
+###### Question 20: Produce a list of the total number of slots booked per facility per month in the year of 2012. Produce an output table consisting of facility id and slots, sorted by the id and month.
+```
 select bookings.facid, extract(month from starttime) as month, sum(slots) as "Total Slots"
 from cd.bookings
 where extract(year from starttime)=2012
 group by bookings.facid, extract(month from starttime)
 order by bookings.facid, extract(month from starttime)
---Find the count of members who have made at least one booking
+```
+###### Question 21: Find the total number of members (including guests) who have made at least one booking.
+```
 select count(distinct bookings.memid) as "count"
 from cd.bookings
---List each member's first booking after September 1st 2012
+```
+###### Question 22: Produce a list of each member name, id, and their first booking after September 1st 2012. Order by member ID.
+```
 select surname, firstname, members.memid, min(bookings.starttime) as starttime
 from cd.members
 full join cd.bookings
@@ -231,33 +244,47 @@ on members.memid=bookings.memid
 where starttime>'2012-09-01'
 group by surname, firstname, members.memid
 order by members.memid
---Produce a list of member names, with each row containing the total member count
+```
+###### Question 23: Produce a list of member names, with each row containing the total member count. Order by join date, and include guest members.
+```
 select count(*) over(), firstname, surname
 from cd.members
 order by joindate
---Produce a numbered list of members
+```
+###### Question 24: Produce a monotonically increasing numbered list of members (including guests), ordered by their date of joining. Remember that member IDs are not guaranteed to be sequential.
+```
 select row_number() over(order by joindate), firstname, surname
 from cd.members
 order by joindate
--- Output the facility id that has the highest number of slots booked, again
-select facid, total from(
-select bookings.facid, sum(slots) as total, rank() over (order by sum(slots) desc) as count
-from cd.bookings
-group by facid
-order by sum(slots) desc) as subquery
+```
+###### Question 25: Output the facility id that has the highest number of slots booked. Ensure that in the event of a tie, all tieing results get output.
+```
+select facid, total
+from(select bookings.facid, sum(slots) as total, rank() over (order by sum(slots) desc) as count
+	from cd.bookings
+	group by facid
+	order by sum(slots) desc)
+as subquery
 where count =1
---Format the names of members
-select surname || ', ' || firstname as name from cd.members  
---Find telephone numbers with parentheses
+```
+###### Question 26: Output the names of all members, formatted as 'Surname, Firstname'
+```
+select surname || ', ' || firstname as name from cd.members
+```
+###### Question 27:You've noticed that the club's member table has telephone numbers with very inconsistent formatting. You'd like to find all the telephone numbers that contain parentheses, returning the member ID and telephone number sorted by member ID.
+```
 select memid, telephone from cd.members
-where telephone like '(%)%-%'
--- Count the number of members whose surname starts with each letter of the alphabet
+where telephone like '(%%%)%%%-%%%'
+```
+###### Question 28: You'd like to produce a count of how many members you have whose surname starts with each letter of the alphabet. Sort by the letter, and don't worry about printing out a letter if the count is 0.
+```
 select substr(surname, 1,1) as letter, count(*) as count
 from cd.members
 group by letter
 order by letter
+```
 
-###### Questions 2: Lorem ipsum...
+
 
 
 
